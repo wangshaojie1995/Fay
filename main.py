@@ -5,6 +5,7 @@ import sys
 import time
 import psutil
 import re
+import argparse
 from utils import config_util, util
 from asr import ali_nls
 from core import wsa_server
@@ -76,12 +77,15 @@ def console_listener():
         if args[0] == 'help':
             util.log(1, 'in <msg> \t通过控制台交互')
             util.log(1, 'restart \t重启服务')
+            util.log(1, 'start \t\t启动服务')
             util.log(1, 'stop \t\t关闭服务')
             util.log(1, 'exit \t\t结束程序')
 
         elif args[0] == 'stop' and fay_booter.is_running():
             fay_booter.stop()
-            break
+        
+        elif args[0] == 'start' and not fay_booter.is_running():
+            fay_booter.start()
 
         elif args[0] == 'restart' and fay_booter.is_running():
             fay_booter.stop()
@@ -142,6 +146,14 @@ if __name__ == '__main__':
     #监听控制台
     util.log(1, '注册命令...')
     MyThread(target=console_listener).start()
+
+    parser = argparse.ArgumentParser(description="start自启动")
+    parser.add_argument('command', nargs='?', default='', help="start")
+
+    parsed_args = parser.parse_args()
+    if parsed_args.command.lower() == 'start':
+        MyThread(target=fay_booter.start).start()
+
 
     #普通模式下启动窗口
     if config_util.start_mode == 'common':    
